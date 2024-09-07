@@ -1,8 +1,13 @@
 // import Header from "./Header";
 
-import React from "react";
+import React, { useState } from "react";
 
 const Login = () => {
+  const [isSignInForm, setISSignInForm] = useState(true);
+
+  const toggleSignInFrom = () => {
+    setISSignInForm(!isSignInForm);
+  };
   return (
     <div className="relative h-screen">
       {/* <Header /> */}
@@ -27,9 +32,21 @@ const Login = () => {
 
       {/* Login Form */}
       <div className="relative z-20 flex justify-center items-center h-full">
-        <form className="bg-black bg-opacity-80 p-8 rounded-lg w-96">
-          <h2 className="text-white text-3xl mb-6">Sign In</h2>
+        <form className="bg-black bg-opacity-60 p-8 rounded-lg w-96">
+          <h2 className="text-white text-3xl mb-6">
+            {isSignInForm ? "Sign In" : "Sign Up"}
+          </h2>
 
+          {/* Name Input (conditionally rendered) */}
+          {!isSignInForm && (
+            <div className="mb-4">
+              <input
+                type="text"
+                placeholder="Name"
+                className="w-full p-3 bg-gray-700 text-white rounded outline-none focus:ring-2 focus:ring-red-500"
+              />
+            </div>
+          )}
           {/* Email Input */}
           <div className="mb-4">
             <input
@@ -53,7 +70,7 @@ const Login = () => {
             type="submit"
             className="w-full bg-red-600 text-white py-3 rounded mb-4 hover:bg-red-700"
           >
-            Sign In
+            {isSignInForm ? "Sign In" : "Sign Up"}
           </button>
 
           {/* Options Below the Sign In Button */}
@@ -93,7 +110,11 @@ const Login = () => {
           {/* Signup Section */}
           <div className="text-gray-500 text-center mt-4">
             <span>New to Netflix? </span>
-            <a href="#" className="text-white hover:underline">
+            <a
+              href="#"
+              className="text-white hover:underline"
+              onClick={toggleSignInFrom}
+            >
               Sign up now.
             </a>
           </div>
