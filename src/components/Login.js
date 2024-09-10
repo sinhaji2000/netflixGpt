@@ -1,20 +1,88 @@
-// import Header from "./Header";
-
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
+import { validateData } from "../utils/validate";
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  updateProfile,
+} from "firebase/auth";
+import { auth } from "../utils/firebase";
+import { useNavigate } from "react-router-dom";
 
 const Login = () => {
+  const navigate = useNavigate();
   const [isSignInForm, setISSignInForm] = useState(true);
+  const [errorMessage, setErrorMessage] = useState(null);
+
+  const email = useRef(null);
+  const password = useRef(null);
+  const displayName = useRef(null);
 
   const toggleSignInFrom = () => {
     setISSignInForm(!isSignInForm);
   };
+
+  const handleFormSubmit = (e) => {
+    e.preventDefault();
+    const message = validateData(email.current.value, password.current.value);
+    setErrorMessage(message);
+
+    if (message) return;
+
+    if (!isSignInForm) {
+      // sign-Up
+      createUserWithEmailAndPassword(
+        auth,
+        email.current.value,
+        password.current.value
+      )
+        .then((userCredential) => {
+          const user = userCredential.user;
+          updateProfile(auth.user, {
+            displayName: displayName.current.value,
+            photoURL: "https://avatars.githubusercontent.com/u/90685854?v=4",
+          })
+            .then(() => {
+              // profile Updated
+              navigate("/browse");
+            })
+            .catch((error) => {
+              //An error occurd
+              setErrorMessage(error.message);
+            });
+          console.log(user);
+        })
+        .catch((error) => {
+          // const errorCode = error.code;
+          const errorMessage = error.message;
+          setErrorMessage(errorMessage);
+          console.log(error.message);
+        });
+    } else {
+      // sign in
+      signInWithEmailAndPassword(
+        auth,
+        email.current.value,
+        password.current.value
+      )
+        .then((userCredential) => {
+          const user = userCredential.user;
+          console.log(user);
+          navigate("/browse");
+        })
+        .catch((error) => {
+          // const errorCode = error.code;
+          const errorMessage = error.message;
+          setErrorMessage(errorMessage);
+        });
+    }
+  };
+
   return (
     <div className="relative h-screen">
-      {/* <Header /> */}
       {/* Background Image */}
       <div className="absolute inset-0">
         <img
-          src="https://assets.nflxext.com/ffe/siteui/vlv3/dae1f45f-c2c5-4a62-8d58-6e1b0c6b2d8e/6d1fb8a4-5844-42a4-9b01-1c6c128acf19/IN-en-20240827-TRIFECTA-perspective_WEB_c292a608-cdc6-4686-8dc8-405bfcf753af_large.jpg"
+          src="https://assets.nflxext.com/ffe/siteui/vlv3/04bef84d-51f6-401e-9b8e-4a521cbce3c5/null/IN-en-20240903-TRIFECTA-perspective_0d3aac9c-578f-4e3c-8aa8-bbf4a392269b_large.jpg"
           className="w-full h-full object-cover"
           alt="Netflix Background"
         />
@@ -32,7 +100,10 @@ const Login = () => {
 
       {/* Login Form */}
       <div className="relative z-20 flex justify-center items-center h-full">
-        <form className="bg-black bg-opacity-60 p-8 rounded-lg w-96">
+        <form
+          className="bg-black bg-opacity-60 p-8 rounded-lg w-96"
+          onSubmit={handleFormSubmit}
+        >
           <h2 className="text-white text-3xl mb-6">
             {isSignInForm ? "Sign In" : "Sign Up"}
           </h2>
@@ -41,6 +112,7 @@ const Login = () => {
           {!isSignInForm && (
             <div className="mb-4">
               <input
+                ref={displayName}
                 type="text"
                 placeholder="Name"
                 className="w-full p-3 bg-gray-700 text-white rounded outline-none focus:ring-2 focus:ring-red-500"
@@ -50,6 +122,7 @@ const Login = () => {
           {/* Email Input */}
           <div className="mb-4">
             <input
+              ref={email}
               type="email"
               placeholder="Email or mobile number"
               className="w-full p-3 bg-gray-700 text-white rounded outline-none focus:ring-2 focus:ring-red-500"
@@ -59,11 +132,13 @@ const Login = () => {
           {/* Password Input */}
           <div className="mb-4">
             <input
+              ref={password}
               type="password"
               placeholder="Password"
               className="w-full p-3 bg-gray-700 text-white rounded outline-none focus:ring-2 focus:ring-red-500"
             />
           </div>
+          <p className="text-red-500 font-bold text-lg">{errorMessage}</p>
 
           {/* Sign In Button */}
           <button
@@ -111,7 +186,7 @@ const Login = () => {
           <div className="text-gray-500 text-center mt-4">
             <span>New to Netflix? </span>
             <a
-              href="#"
+              href={!isSignInForm ? "/#" : "/"}
               className="text-white hover:underline"
               onClick={toggleSignInFrom}
             >
